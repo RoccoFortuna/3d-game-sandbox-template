@@ -1,75 +1,78 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { View, StyleSheet, Text } from 'react-native';
 
 export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>🎮 Your 3D Game Project</Text>
+        <Text style={styles.subtitle}>
+          This is your empty project, ready to be transformed into an amazing 3D game!
+        </Text>
+        <Text style={styles.instructions}>
+          Describe the 3D game you want to build and watch it come to life.
+        </Text>
+        <View style={styles.examples}>
+          <Text style={styles.examplesTitle}>Ideas to get started:</Text>
+          <Text style={styles.example}>• "Create a 3D platformer where I play as a cube jumping on floating islands"</Text>
+          <Text style={styles.example}>• "Build a simple racing game with a car on a track"</Text>
+          <Text style={styles.example}>• "Make a first-person maze explorer"</Text>
+        </View>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    padding: 20,
   },
-  stepContainer: {
-    gap: 8,
+  content: {
+    maxWidth: 600,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#a0a0a0',
+    marginBottom: 12,
+    textAlign: 'center',
+    lineHeight: 26,
+  },
+  instructions: {
+    fontSize: 16,
+    color: '#808080',
+    marginBottom: 32,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  examples: {
+    backgroundColor: '#1a1a1a',
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+    width: '100%',
+  },
+  examplesTitle: {
+    fontSize: 14,
+    color: '#ffffff',
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  example: {
+    fontSize: 14,
+    color: '#a0a0a0',
     marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+    lineHeight: 20,
   },
 });
