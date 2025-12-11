@@ -194,13 +194,106 @@ function Player({ position, controls, onPositionChange }) {
 **Controls object format:**
 ```typescript
 interface Controls {
-  forward: boolean;
-  back: boolean;
-  left: boolean;
-  right: boolean;
-  jump: boolean;
+  forward: boolean;  // W key
+  back: boolean;     // S key
+  left: boolean;     // A key
+  right: boolean;    // D key
+  jump: boolean;     // Spacebar
 }
 ```
+
+#### Keyboard Controls (WASD + Spacebar)
+
+**Standard keyboard bindings** for desktop/web platformers:
+
+- **W** - Move forward (decreases Z)
+- **A** - Move left (decreases X)
+- **S** - Move backward (increases Z)
+- **D** - Move right (increases X)
+- **Spacebar** - Jump
+
+**Implementation with keyboard events:**
+
+```typescript
+import { useEffect, useState } from 'react';
+
+function useKeyboardControls() {
+  const [controls, setControls] = useState({
+    forward: false,
+    back: false,
+    left: false,
+    right: false,
+    jump: false,
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.code) {
+        case 'KeyW':
+          setControls(c => ({ ...c, forward: true }));
+          break;
+        case 'KeyA':
+          setControls(c => ({ ...c, left: true }));
+          break;
+        case 'KeyS':
+          setControls(c => ({ ...c, back: true }));
+          break;
+        case 'KeyD':
+          setControls(c => ({ ...c, right: true }));
+          break;
+        case 'Space':
+          e.preventDefault(); // Prevent page scroll
+          setControls(c => ({ ...c, jump: true }));
+          break;
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      switch (e.code) {
+        case 'KeyW':
+          setControls(c => ({ ...c, forward: false }));
+          break;
+        case 'KeyA':
+          setControls(c => ({ ...c, left: false }));
+          break;
+        case 'KeyS':
+          setControls(c => ({ ...c, back: false }));
+          break;
+        case 'KeyD':
+          setControls(c => ({ ...c, right: false }));
+          break;
+        case 'Space':
+          setControls(c => ({ ...c, jump: false }));
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  return controls;
+}
+
+// Usage in game component
+function PlatformerGame() {
+  const controls = useKeyboardControls();
+
+  return (
+    <Canvas>
+      <Player position={[0, 2, 0]} controls={controls} platforms={platforms} />
+      {/* ... rest of scene ... */}
+    </Canvas>
+  );
+}
+```
+
+**Note:** For React Native mobile apps, use touch controls (see `implementing-3d-controls` skill). For web/desktop builds, **always implement WASD + Spacebar** as the standard control scheme.
 
 ### 4. Platform Collision Detection
 
