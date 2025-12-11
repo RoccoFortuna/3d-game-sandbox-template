@@ -1,8 +1,39 @@
 import { View, StyleSheet, Text } from 'react-native';
+import { Canvas, useFrame, useLoader } from '@react-three/fiber';
+import { useRef } from 'react';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import * as THREE from 'three';
+
+function RotatingBeaver() {
+  const meshRef = useRef<THREE.Group>(null);
+  const gltf = useLoader(GLTFLoader, require('../public/models/beaver.glb'));
+
+  useFrame((state, delta) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y += delta * 0.5;
+    }
+  });
+
+  return (
+    <primitive
+      ref={meshRef}
+      object={gltf.scene}
+      scale={2}
+      position={[0, -1, 0]}
+    />
+  );
+}
 
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
+      <View style={styles.canvasContainer}>
+        <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[5, 5, 5]} intensity={1} />
+          <RotatingBeaver />
+        </Canvas>
+      </View>
       <View style={styles.content}>
         <Text style={styles.title}>🎮 Your 3D Game Project</Text>
         <Text style={styles.subtitle}>
@@ -29,6 +60,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  canvasContainer: {
+    width: 300,
+    height: 300,
+    marginBottom: 32,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#1a1a1a',
   },
   content: {
     maxWidth: 600,
