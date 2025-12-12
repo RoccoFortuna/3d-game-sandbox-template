@@ -18,8 +18,8 @@ function RotatingBeaver() {
     <primitive
       ref={meshRef}
       object={gltf.scene}
-      scale={2}
-      position={[0, -1, 0]}
+      scale={0.1}
+      position={[0, -1, -5]}
     />
   );
 }
@@ -28,7 +28,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.canvasContainer}>
-        <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+        <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
           <ambientLight intensity={0.5} />
           <directionalLight position={[5, 5, 5]} intensity={1} />
           <RotatingBeaver />
@@ -65,9 +65,6 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     marginBottom: 32,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#1a1a1a',
   },
   content: {
     maxWidth: 600,
