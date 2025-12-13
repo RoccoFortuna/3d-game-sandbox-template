@@ -1,12 +1,12 @@
 import { View, StyleSheet, Text } from 'react-native';
-import { Canvas, useFrame, useLoader } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import * as THREE from 'three';
+import { useNormalizedModel } from './hooks/useNormalizedModel';
 
 function RotatingBeaver() {
   const meshRef = useRef<THREE.Group>(null);
-  const gltf = useLoader(GLTFLoader, require('../public/models/beaver.glb'));
+  const gltf = useNormalizedModel(require('../public/models/beaver.glb'), 2.0);
 
   useFrame((state, delta) => {
     if (meshRef.current) {
@@ -18,7 +18,6 @@ function RotatingBeaver() {
     <primitive
       ref={meshRef}
       object={gltf.scene}
-      scale={0.1}
       position={[0, -1, -5]}
     />
   );
