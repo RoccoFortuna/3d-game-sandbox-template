@@ -4,22 +4,29 @@ import { useRef } from 'react';
 import * as THREE from 'three';
 import { useNormalizedModel } from './hooks/useNormalizedModel';
 
-function RotatingBeaver() {
-  const meshRef = useRef<THREE.Group>(null);
-  const gltf = useNormalizedModel(require('../public/models/beaver.glb'), 2.0);
+function RotatingController() {
+  const groupRef = useRef<THREE.Group>(null);
+  const gltf = useNormalizedModel(require('../public/models/controller.glb'), 4.5);
 
   useFrame((state, delta) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.5;
+    if (groupRef.current) {
+      // Variable speed with smooth ease-in-out: slow when facing us, fast when rotated away
+      const phaseShift = - Math.PI / 3; // Shift timing: start slower later, stay slow longer
+      const normalizedCos = (1 - Math.cos(groupRef.current.rotation.y + phaseShift)) / 2;
+      // Apply smoothstep for smoother easing
+      const eased = normalizedCos * normalizedCos * (3 - 2 * normalizedCos);
+      const speed = 0.3 + eased * 10; // ranges from 0.15 (slow) to 1.5 (fast)
+      groupRef.current.rotation.y += delta * speed;
     }
   });
 
   return (
-    <primitive
-      ref={meshRef}
-      object={gltf.scene}
-      position={[0, -1, -5]}
-    />
+    <group ref={groupRef} position={[0, 0, -5]}>
+      <primitive
+        object={gltf.scene}
+        rotation={[Math.PI / 6, 0, Math.PI / 4]}
+      />
+    </group>
   );
 }
 
@@ -30,7 +37,7 @@ export default function HomeScreen() {
         <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
           <ambientLight intensity={0.5} />
           <directionalLight position={[5, 5, 5]} intensity={1} />
-          <RotatingBeaver />
+          <RotatingController />
         </Canvas>
       </View>
       <View style={styles.content}>
