@@ -972,8 +972,6 @@ useFrame(() => {
 - **skeletal-animations**: Essential for animated characters - AnimationMixer setup and state machines
 - **generating-3d-assets**: Download animated models from Sketchfab that work with this movement system
 - **3d-game-defaults**: Standard values for physics, sizes, and movement parameters
-- **implementing-3d-controls**: For touch/keyboard input patterns
-- **designing-game-cameras**: For following the player with third-person or orbital cameras
 
 ## Resources
 
