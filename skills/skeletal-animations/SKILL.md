@@ -1,6 +1,8 @@
 ---
 name: skeletal-animations
-description: How to implement skeletal animations with AnimationMixer. Covers discovering available animations, setting up the animation system, and creating state machines for gameplay.
+description: How to implement skeletal animations with AnimationMixer. Covers discovering available animations, setting up the animation system, and creating state machines for gameplay. Essential for animated models from Sketchfab.
+dependencies:
+  - 3d-game-defaults
 ---
 
 # Skeletal Animations with AnimationMixer

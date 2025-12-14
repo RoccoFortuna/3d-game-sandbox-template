@@ -1,6 +1,10 @@
 ---
 name: creating-platformer-mechanics
 description: Implement 3D platformer game mechanics using React Native and @react-three/fiber. Covers player movement, jumping, gravity, collision detection, and platform interactions. Provides working code examples for building platformer games.
+dependencies:
+  - skeletal-animations
+  - generating-3d-assets
+  - 3d-game-defaults
 ---
 
 # Creating Platformer Mechanics

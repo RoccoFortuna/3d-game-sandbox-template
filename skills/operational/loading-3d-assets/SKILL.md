@@ -1,6 +1,8 @@
 ---
 name: loading-3d-assets
 description: Load and auto-normalize downloaded 3D models (GLB/GLTF) to correct scale. CRITICAL: Always use useNormalizedModel hook for downloaded assets to avoid scale issues.
+dependencies:
+  - 3d-game-defaults
 ---
 
 # Loading 3D Assets with Auto-Normalization
