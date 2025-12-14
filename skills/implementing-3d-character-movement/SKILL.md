@@ -1,26 +1,43 @@
 ---
-name: creating-platformer-mechanics
-description: Implement 3D platformer game mechanics using React Native and @react-three/fiber. Covers player movement, jumping, gravity, collision detection, and platform interactions. Provides working code examples for building platformer games.
+name: implementing-3d-character-movement
+description: Implement 3D character movement for various game types (platformers, FPS, flying, etc.) using React Native and @react-three/fiber. Covers WASD controls, physics, jumping, smooth rotation, collision detection, and animation integration. Works for ground-based, flying, and space games.
 dependencies:
   - skeletal-animations
   - generating-3d-assets
   - 3d-game-defaults
 ---
 
-# Creating Platformer Mechanics
+# Implementing 3D Character Movement
 
-This skill provides patterns and code examples for implementing 3D platformer game mechanics with React Native and @react-three/fiber.
+This skill provides patterns and code examples for implementing character movement in 3D games with React Native and @react-three/fiber. Applicable to platformers, FPS games, flying games, and more.
 
 ## When to Use This Skill
 
 Use this skill when:
-- User requests a platformer game
-- Need to implement jumping and gravity
-- Adding collision detection
-- Creating floating platforms
-- Building player movement systems
+- Building character or vehicle movement for any 3D game type
+- Need to implement WASD keyboard controls
+- Adding physics-based movement (gravity, velocity, acceleration)
+- Creating smooth character rotation towards movement direction
+- Integrating movement with skeletal animations (Idle/Run/Jump states)
+- Building platformers, FPS games, flying games, or space games
 
-## Core Platformer Mechanics
+## Core Movement Concepts
+
+### Movement Types by Game Genre
+
+Different game types require different movement configurations:
+
+| Game Type | Gravity | Smooth Rotation | Jump | Example |
+|-----------|---------|-----------------|------|---------|
+| **Platformer** | Yes | Optional | Yes | Mario, Celeste |
+| **FPS** | Yes | No (instant) | Yes | Counter-Strike |
+| **Flying/Space** | No | Yes | No (thrust instead) | Star Fox |
+| **Top-Down** | No | Yes | No | Zelda |
+| **Racing** | Yes | Yes | No | Mario Kart |
+
+This skill covers the common patterns that apply across all these types.
+
+## Basic Movement Mechanics
 
 ### 1. Player Character with Physics
 
@@ -299,7 +316,95 @@ function PlatformerGame() {
 
 **Note:** For React Native mobile apps, use touch controls (see `implementing-3d-controls` skill). For web/desktop builds, **always implement WASD + Spacebar** as the standard control scheme.
 
-### 4. Platform Collision Detection
+### 4. Smooth Character Rotation
+
+For realistic movement, characters should smoothly rotate to face their movement direction instead of snapping instantly.
+
+```typescript
+import * as THREE from 'three';
+
+function Player({ position, controls }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [velocity, setVelocity] = useState({ x: 0, y: 0, z: 0 });
+
+  useFrame((state, delta) => {
+    if (!groupRef.current) return;
+
+    let newVelocity = { ...velocity };
+
+    // Calculate movement direction
+    const moveSpeed = 0.15;
+    const movement = new THREE.Vector3();
+
+    if (controls.forward) movement.z -= 1;
+    if (controls.back) movement.z += 1;
+    if (controls.left) movement.x -= 1;
+    if (controls.right) movement.x += 1;
+
+    const isMoving = movement.length() > 0;
+
+    if (isMoving) {
+      // Normalize and apply speed
+      movement.normalize();
+      newVelocity.x = movement.x * moveSpeed;
+      newVelocity.z = movement.z * moveSpeed;
+
+      // Calculate target rotation using Math.atan2
+      const targetRotation = Math.atan2(movement.x, movement.z);
+
+      // Smooth rotation using lerp
+      const rotationSpeed = 10 * delta; // Adjust for faster/slower rotation
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(
+        groupRef.current.rotation.y,
+        targetRotation,
+        rotationSpeed
+      );
+    }
+
+    // Update position
+    groupRef.current.position.x += newVelocity.x * delta * 60;
+    groupRef.current.position.z += newVelocity.z * delta * 60;
+
+    setVelocity(newVelocity);
+  });
+
+  return (
+    <group ref={groupRef} position={position}>
+      <mesh>
+        <boxGeometry args={[0.5, 1.8, 0.5]} />
+        <meshStandardMaterial color="#4287f5" />
+      </mesh>
+      {/* Visual indicator for forward direction */}
+      <mesh position={[0, 0.9, -0.4]}>
+        <coneGeometry args={[0.2, 0.3, 8]} rotation={[Math.PI / 2, 0, 0]} />
+        <meshStandardMaterial color="#ff0000" />
+      </mesh>
+    </group>
+  );
+}
+```
+
+**Key concepts:**
+- **Math.atan2(x, z)**: Calculates angle from movement vector
+- **THREE.MathUtils.lerp()**: Smoothly interpolates between current and target rotation
+- **Rotation speed**: Controls how fast character turns (higher = snappier)
+- **Group vs Mesh**: Use `<group>` to rotate entire character, keeping mesh geometry unchanged
+
+**When to use smooth rotation:**
+- ✅ Third-person games (character visible on screen)
+- ✅ Top-down games
+- ✅ Flying/space games
+- ❌ FPS games (camera rotates instantly with mouse)
+
+**Configurable rotation speed:**
+```typescript
+const INSTANT_ROTATION = 100; // Snaps immediately
+const FAST_ROTATION = 15;     // Quick, arcade feel
+const SMOOTH_ROTATION = 8;    // Realistic, cinematic
+const SLOW_ROTATION = 3;      // Tank controls, heavy vehicles
+```
+
+### 5. Platform Collision Detection
 
 Simple box collision between player (sphere) and platforms (boxes).
 
@@ -528,6 +633,260 @@ const styles = StyleSheet.create({
 });
 ```
 
+## Configurable Physics for Different Game Types
+
+Different game types need different physics configurations. Make movement systems flexible:
+
+### Toggle Gravity (for Flying/Space Games)
+
+```typescript
+function Player({ position, controls, config = {} }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [velocity, setVelocity] = useState({ x: 0, y: 0, z: 0 });
+
+  // Configuration with defaults
+  const {
+    enableGravity = true,      // Disable for flying/space games
+    gravityStrength = 30,       // Units per second² (3x Earth gravity for game feel)
+    enableJump = true,          // Disable for flying games
+    jumpStrength = 10,          // Units per second
+    moveSpeed = 5,              // Units per second
+    lockYAxis = false,          // Lock for 2.5D platformers
+  } = config;
+
+  useFrame((state, delta) => {
+    if (!groupRef.current) return;
+
+    let newVelocity = { ...velocity };
+
+    // Apply gravity only if enabled
+    if (enableGravity && !isGrounded) {
+      newVelocity.y -= gravityStrength * delta;
+    }
+
+    // Movement input
+    const movement = new THREE.Vector3();
+    if (controls.forward) movement.z -= 1;
+    if (controls.back) movement.z += 1;
+    if (controls.left) movement.x -= 1;
+    if (controls.right) movement.x += 1;
+
+    if (movement.length() > 0) {
+      movement.normalize().multiplyScalar(moveSpeed * delta);
+      newVelocity.x = movement.x;
+      newVelocity.z = movement.z;
+    }
+
+    // Vertical controls for flying games
+    if (!enableGravity) {
+      if (controls.jump) newVelocity.y = moveSpeed * delta;      // Ascend
+      if (controls.crouch) newVelocity.y = -moveSpeed * delta;   // Descend
+    } else if (enableJump && controls.jump && isGrounded) {
+      newVelocity.y = jumpStrength;
+    }
+
+    // Lock Y axis for 2.5D games
+    if (lockYAxis) {
+      newVelocity.y = 0;
+      groupRef.current.position.y = position[1];
+    }
+
+    // Update position
+    groupRef.current.position.x += newVelocity.x;
+    groupRef.current.position.y += newVelocity.y;
+    groupRef.current.position.z += newVelocity.z;
+
+    setVelocity(newVelocity);
+  });
+
+  return <group ref={groupRef} position={position}>{/* ... */}</group>;
+}
+```
+
+### Configuration Examples by Game Type
+
+```typescript
+// Platformer (standard)
+<Player config={{
+  enableGravity: true,
+  gravityStrength: 30,
+  enableJump: true,
+  moveSpeed: 5
+}} />
+
+// Flying/Space game
+<Player config={{
+  enableGravity: false,
+  enableJump: false,  // Use vertical controls instead
+  moveSpeed: 8
+}} />
+
+// 2.5D Platformer (locked Y plane)
+<Player config={{
+  enableGravity: true,
+  gravityStrength: 30,
+  enableJump: true,
+  lockYAxis: false,  // Allow jumping, but camera locked to side view
+  moveSpeed: 5
+}} />
+
+// Top-down game (locked Y, no gravity)
+<Player config={{
+  enableGravity: false,
+  enableJump: false,
+  lockYAxis: true,
+  moveSpeed: 6
+}} />
+```
+
+## Animation Integration with Movement
+
+For animated characters (from Sketchfab or with skeletal rigs), integrate AnimationMixer with movement states. See `skeletal-animations` skill for complete AnimationMixer setup.
+
+### Movement-Based Animation State Machine
+
+```typescript
+import * as THREE from 'three';
+import { useLoader } from '@react-three/fiber';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
+function AnimatedPlayer({ position, controls }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
+  const actionsRef = useRef<Record<string, THREE.AnimationAction>>({});
+  const currentAnimationRef = useRef('Idle');
+  const [velocity, setVelocity] = useState({ x: 0, y: 0, z: 0 });
+  const [isGrounded, setIsGrounded] = useState(true);
+
+  // Load animated model
+  const gltf = useLoader(GLTFLoader, require('../assets/models/character.glb'));
+
+  // Setup AnimationMixer
+  useEffect(() => {
+    if (!gltf || !gltf.scene || !gltf.animations) return;
+
+    const mixer = new THREE.AnimationMixer(gltf.scene);
+    mixerRef.current = mixer;
+
+    // Store all animations
+    gltf.animations.forEach((clip) => {
+      const action = mixer.clipAction(clip);
+      actionsRef.current[clip.name] = action;
+    });
+
+    // Start with Idle
+    if (actionsRef.current['Idle']) {
+      actionsRef.current['Idle'].play();
+    }
+
+    return () => { mixer.stopAllAction(); };
+  }, [gltf]);
+
+  // Animation state machine
+  const playAnimation = (name: string) => {
+    if (currentAnimationRef.current === name) return;
+    if (!actionsRef.current[name]) return;
+
+    const current = actionsRef.current[currentAnimationRef.current];
+    const next = actionsRef.current[name];
+
+    if (current) current.fadeOut(0.2);
+    if (next) next.reset().fadeIn(0.2).play();
+
+    currentAnimationRef.current = name;
+  };
+
+  useFrame((state, delta) => {
+    if (!groupRef.current) return;
+
+    // Update animation mixer
+    if (mixerRef.current) mixerRef.current.update(delta);
+
+    let newVelocity = { ...velocity };
+
+    // Movement input
+    const movement = new THREE.Vector3();
+    if (controls.forward) movement.z -= 1;
+    if (controls.back) movement.z += 1;
+    if (controls.left) movement.x -= 1;
+    if (controls.right) movement.x += 1;
+
+    const isMoving = movement.length() > 0;
+
+    // Animation state machine
+    if (!isGrounded) {
+      playAnimation('Jump');  // Or 'Fall' if you have separate animations
+    } else if (isMoving) {
+      playAnimation('Running');
+    } else {
+      playAnimation('Idle');
+    }
+
+    // Apply movement with smooth rotation
+    if (isMoving) {
+      movement.normalize().multiplyScalar(0.15);
+      newVelocity.x = movement.x;
+      newVelocity.z = movement.z;
+
+      const targetRotation = Math.atan2(movement.x, movement.z);
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(
+        groupRef.current.rotation.y,
+        targetRotation,
+        10 * delta
+      );
+    }
+
+    // Jump
+    if (controls.jump && isGrounded) {
+      newVelocity.y = 0.3;
+    }
+
+    // Gravity
+    if (!isGrounded) {
+      newVelocity.y -= 0.05;
+    }
+
+    // Update position
+    groupRef.current.position.x += newVelocity.x * delta * 60;
+    groupRef.current.position.y += newVelocity.y * delta * 60;
+    groupRef.current.position.z += newVelocity.z * delta * 60;
+
+    // Ground collision
+    if (groupRef.current.position.y <= 0.5) {
+      groupRef.current.position.y = 0.5;
+      newVelocity.y = 0;
+      setIsGrounded(true);
+    } else {
+      setIsGrounded(false);
+    }
+
+    setVelocity(newVelocity);
+  });
+
+  return (
+    <group ref={groupRef} position={position}>
+      <primitive object={gltf.scene} />
+    </group>
+  );
+}
+```
+
+**Required animations for movement:**
+- **Idle** - Standing still, breathing
+- **Running** (or Walking) - Moving forward
+- **Jump** - In air, legs tucked (optional: separate Fall animation)
+
+**Advanced animation states:**
+- **Strafing** - Side movement
+- **Backpedal** - Moving backward
+- **Sprint** - Fast run
+- **Land** - Impact on ground
+
+See `skeletal-animations` skill for:
+- Complete AnimationMixer setup
+- Animation blending and crossfading
+- Debugging available animations in GLB files
+
 ## Advanced Patterns
 
 ### Moving Platforms
@@ -610,9 +969,11 @@ useFrame(() => {
 
 ## Related Skills
 
-- **implementing-3d-controls**: For touch/keyboard input
-- **designing-game-cameras**: For following the player
-- **building-3d-environments**: For creating level layouts
+- **skeletal-animations**: Essential for animated characters - AnimationMixer setup and state machines
+- **generating-3d-assets**: Download animated models from Sketchfab that work with this movement system
+- **3d-game-defaults**: Standard values for physics, sizes, and movement parameters
+- **implementing-3d-controls**: For touch/keyboard input patterns
+- **designing-game-cameras**: For following the player with third-person or orbital cameras
 
 ## Resources
 
