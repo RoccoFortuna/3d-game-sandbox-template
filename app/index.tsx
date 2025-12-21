@@ -2,7 +2,7 @@ import { View, StyleSheet, Text } from 'react-native';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useRef, useState } from 'react';
 import * as THREE from 'three';
-import { useNormalizedModel } from './hooks/useNormalizedModel';
+import { useNormalizedModel } from '@/hooks/useNormalizedModel';
 
 function SwappingModels() {
   const groupRef = useRef<THREE.Group>(null);
