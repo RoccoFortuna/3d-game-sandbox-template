@@ -99,7 +99,7 @@ When the agent downloads a 3D asset:
 ### Example 1: Character
 
 ```typescript
-import { useNormalizedModel } from './hooks/useNormalizedModel';
+import { useNormalizedModel } from '@/hooks/useNormalizedModel';
 
 function Player() {
   // Agent called: getPolyPizzaAsset({ query: "character", filename: "player", mcpUrl })

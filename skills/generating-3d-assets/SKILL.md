@@ -230,7 +230,7 @@ if (result.success) {
 ```typescript
 // All tools save to assets/models/
 // Always use useNormalizedModel to auto-scale
-import { useNormalizedModel } from './hooks/useNormalizedModel';
+import { useNormalizedModel } from '@/hooks/useNormalizedModel';
 
 function PlayerHelicopter() {
   const gltf = useNormalizedModel(
@@ -280,7 +280,7 @@ if (polyPizzaResult.success) {
 
 // Step 3: Create component using the asset
 // Write to app/components/HoverBike.tsx:
-import { useNormalizedModel } from '../hooks/useNormalizedModel';
+import { useNormalizedModel } from '@/hooks/useNormalizedModel';
 
 function HoverBike({ position }) {
   const gltf = useNormalizedModel(
