@@ -1,24 +1,25 @@
 ---
 name: character-generation
-description: Generate AI-powered 3D characters from text descriptions with image preview approval. Uses Gemini for image generation (Phase 1 complete). Future: Meshy for 3D/rigging/animation.
+description: Generate AI-powered 3D characters from text descriptions. Phase 1 (image preview) and Phase 2 (3D generation) complete. Uses Gemini for images and Meshy for 3D models.
 dependencies: []
 ---
 
 # AI Character Generation
 
-Generate 3D game characters from natural language descriptions using AI. The system creates a preview image for user approval before generating the full 3D model.
+Generate 3D game characters from natural language descriptions using AI. The system creates a preview image for user approval, then generates a fully textured and rigged 3D GLB model.
 
-## Current Status: Phase 1 (Image Preview)
+## Current Status: Phase 1 & 2 Complete
 
 **Available Now:**
-- Image generation from text descriptions
-- Preview image with user approval workflow
-- Prompt enhancement for optimal rigging
+- ✅ Image generation from text descriptions (Gemini)
+- ✅ Preview image with user approval workflow
+- ✅ Prompt enhancement for optimal rigging (A-pose)
+- ✅ 3D model generation from approved images (Meshy)
+- ✅ Fully textured GLB files ready for game use
 
-**Coming Soon (Phase 2-4):**
-- 3D model generation from approved images
-- Auto-rigging for animation
-- Pre-made animations
+**Coming Soon (Phase 3-4):**
+- Advanced rigging options
+- Pre-made animations library
 
 ## How to Use: Generate Character Preview
 
@@ -102,8 +103,30 @@ What would you like to do?
 - Repeat until they're satisfied
 
 **If user approves:**
-- Tell them: "Great! 3D model generation is coming in Phase 2. For now, I can help you with other aspects of your game."
-- (In the future, this will trigger `generate3DCharacter` tool)
+- Call `generate3DCharacter` tool with the imageId from the preview
+- This will take 2-5 minutes to complete
+- The tool will create a fully textured, rigged GLB file ready for use
+
+### Step 6: Generate 3D Model (Phase 2)
+
+When the user approves the preview, call the `generate3DCharacter` tool:
+
+```typescript
+generate3DCharacter({
+  imageId: "...", // The imageId from generateCharacterPreview result
+  threadId: "..."
+});
+```
+
+**What happens:**
+1. Tool converts the preview image to a 3D GLB model using Meshy AI
+2. Takes 2-5 minutes to complete
+3. Saves the GLB file to `assets/models/characters/[name]_character.glb`
+4. Model is fully textured and rigged in A-pose
+5. Ready to use in the game with AnimationMixer
+
+**Tell the user:**
+"Generating your 3D character model now! This will take about 2-5 minutes. The model will be fully textured and ready to animate when complete."
 
 ## Complete Example Workflow
 
