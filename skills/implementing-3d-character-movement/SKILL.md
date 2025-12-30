@@ -320,6 +320,8 @@ function PlatformerGame() {
 
 For realistic movement, characters should smoothly rotate to face their movement direction instead of snapping instantly.
 
+**IMPORTANT**: When lerping rotation angles, you **must** handle the 360° (2π) wrap-around to avoid the character spinning the "long way" around. Always normalize angle differences before lerping.
+
 ```typescript
 import * as THREE from 'three';
 
@@ -351,14 +353,19 @@ function Player({ position, controls }) {
 
       // Calculate target rotation using Math.atan2
       const targetRotation = Math.atan2(movement.x, movement.z);
+      const currentRotation = groupRef.current.rotation.y;
 
-      // Smooth rotation using lerp
+      // CRITICAL: Normalize angle difference to find shortest rotation path
+      // This prevents spinning 270° instead of -90° when crossing the 0°/360° boundary
+      let angleDiff = targetRotation - currentRotation;
+
+      // Wrap difference to range [-π, π] to ensure shortest path
+      while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+      while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+
+      // Smooth rotation using lerp on the normalized difference
       const rotationSpeed = 10 * delta; // Adjust for faster/slower rotation
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(
-        groupRef.current.rotation.y,
-        targetRotation,
-        rotationSpeed
-      );
+      groupRef.current.rotation.y = currentRotation + angleDiff * rotationSpeed;
     }
 
     // Update position
@@ -386,9 +393,15 @@ function Player({ position, controls }) {
 
 **Key concepts:**
 - **Math.atan2(x, z)**: Calculates angle from movement vector
-- **THREE.MathUtils.lerp()**: Smoothly interpolates between current and target rotation
+- **Angle normalization**: ALWAYS normalize angle difference to [-π, π] before interpolating
+- **Shortest path**: The normalization ensures rotation always takes the shortest direction
 - **Rotation speed**: Controls how fast character turns (higher = snappier)
 - **Group vs Mesh**: Use `<group>` to rotate entire character, keeping mesh geometry unchanged
+
+**Why angle normalization is critical:**
+- Without it: rotating from 0° to 270° tries to rotate through 270° clockwise
+- With it: recognizes that -90° (counter-clockwise) is the shortest path
+- Common bug: character spinning wildly when moving diagonally or changing direction
 
 **When to use smooth rotation:**
 - ✅ Third-person games (character visible on screen)
